@@ -41,20 +41,12 @@ fun SignupScreen(
     var acceptedTerms by remember { mutableStateOf(false) }
 
     val isPhoneValid = phoneNumber.length == 9
-    val isEmailValid = Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    val isIdOrIqamaValid = idOrIqama.length == 10
 
-    val passwordRegex =
-        Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@!#$%&]).{8,}$")
-
-    val isPasswordValid = password.matches(passwordRegex)
 
     val isFormValid =
         isPhoneValid &&
-                isEmailValid &&
-                isPasswordValid &&
-                confirmPassword.isNotBlank() &&
-                password == confirmPassword &&
-                acceptedTerms
+                isIdOrIqamaValid
 
     val scrollState = rememberScrollState()
 
@@ -70,36 +62,45 @@ fun SignupScreen(
 
         Text(
             text = "Enter your ID/Iqama and Phone Number",
-            fontSize = 28.sp
+            fontSize = 16.sp
         )
 
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "ID or Iqama",
-            fontSize = 18.sp, modifier = Modifier
-                .align(Alignment.Start)
-                .padding(start = 16.dp)
+            fontSize = 16.sp,
+            modifier = Modifier.fillMaxWidth()
+
         )
 
+        Spacer(modifier = Modifier.height(12.dp))
 
         TextField(
             value = idOrIqama,
-            onValueChange = { idOrIqama = it },
-            label = { Text("ID / Iqama") },
-            singleLine = true
+            onValueChange = {
+                idOrIqama = it.filter { c -> c.isDigit() }.take(10)
+            },
+            label = { Text("Ex: 1234567890") },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number
+            ),
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
         )
-        Spacer(modifier = Modifier.height(80.dp))
+
+        Spacer(modifier = Modifier.height(32.dp))
 
         // PHONE
         Text(
             text = "Phone Number",
-            fontSize = 18.sp,
-            modifier = Modifier
-                .align(Alignment.Start)
-                .padding(start = 16.dp)
+            fontSize = 16.sp,
+            modifier = Modifier.fillMaxWidth()
+
         )
+        Spacer(modifier = Modifier.height(12.dp))
+
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = dialCode, fontSize = 18.sp)
+            Text(text = dialCode, fontSize = 16.sp)
 
 
 
@@ -110,9 +111,11 @@ fun SignupScreen(
                 onValueChange = {
                     phoneNumber = it.filter { c -> c.isDigit() }.take(9)
                 },
-                label = { Text("Phone Number") },
+                label = { Text("**********") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                singleLine = true
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+
             )
         }
 
@@ -125,12 +128,10 @@ fun SignupScreen(
         // BUTTON
         Button(
             onClick = {
-                if (isFormValid) {
-                    navController.navigate("personal_info")
-                }
-            },
+                navController.navigate(
+                    "otp_verification/$phoneNumber/$idOrIqama"
+                )            },
             enabled = isFormValid
-
         ) {
             Text("Sign Up")
         }

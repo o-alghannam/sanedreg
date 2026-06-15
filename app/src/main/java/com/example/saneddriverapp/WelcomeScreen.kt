@@ -51,7 +51,6 @@ fun AppNavigation() {
         navController = navController,
         startDestination = "home"
     ) {
-
         composable("home") {
             HomeScreen(navController)
         }
@@ -61,22 +60,30 @@ fun AppNavigation() {
         }
 
         composable("signup/{country}") { backStackEntry ->
-
-            val country =
-                backStackEntry.arguments?.getString("country")
-                    ?: "Saudi Arabia"
-
+            val country = backStackEntry.arguments?.getString("country") ?: "Saudi Arabia"
             SignupScreen(
                 navController = navController,
                 selectedCountry = country
             )
         }
 
-        composable("driver_info") {
-            DriverInfoScreen(navController)
+        composable("driver_info/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id") ?: ""
+            DriverInfoScreen(
+                navController = navController,
+                idOrIqama = id
+            )
         }
-        composable("otp_verification") {
-            OtpScreen(navController)
+
+        composable("otp_verification/{phone}/{id}") { backStackEntry ->
+            val phone = backStackEntry.arguments?.getString("phone") ?: ""
+            val id = backStackEntry.arguments?.getString("id") ?: ""
+
+            OtpScreen(
+                navController = navController,
+                phoneNumber = phone,
+                idOrIqama = id
+            )
         }
     }
 }

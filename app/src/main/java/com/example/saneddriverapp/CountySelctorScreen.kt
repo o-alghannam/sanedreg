@@ -22,7 +22,6 @@ import androidx.navigation.NavHostController
 
 @Composable
 fun CountrySelectionScreen(navController: NavHostController) {
-
     var selectedCountry by remember { mutableStateOf("Saudi Arabia") }
 
     Column(
@@ -43,17 +42,13 @@ fun CountrySelectionScreen(navController: NavHostController) {
             "Kuwait",
             "Bahrain"
         ).forEach { country ->
-
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 RadioButton(
                     selected = selectedCountry == country,
-                    onClick = {
-                        selectedCountry = country
-                    }
+                    onClick = { selectedCountry = country }
                 )
-
                 Text(country)
             }
         }
@@ -62,7 +57,8 @@ fun CountrySelectionScreen(navController: NavHostController) {
 
         Button(
             onClick = {
-                navController.navigate("signup/$selectedCountry")            }
+                navController.navigate("signup/$selectedCountry")
+            }
         ) {
             Text("Continue")
         }
