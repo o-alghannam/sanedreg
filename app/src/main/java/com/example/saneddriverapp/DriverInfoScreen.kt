@@ -150,8 +150,8 @@ fun DriverInfoScreen(
     idOrIqama: String,
     phoneNumber: String,
     registrationViewModel: RegistrationViewModel
-){    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+){
+
     var passwordVisible by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val viewModel: CountryViewModel = viewModel()
@@ -162,29 +162,28 @@ fun DriverInfoScreen(
     var nationalityExpanded by remember { mutableStateOf(false) }
 
     var selectedCountry by remember { mutableStateOf("") }
-    var selectedCity by remember { mutableStateOf("") }
-    var selectedNationality by remember { mutableStateOf("") }
 
-    var gender by remember { mutableStateOf("") }
-    var fullName by remember { mutableStateOf("") }
-    var expiryDate by remember { mutableStateOf("") }
-    var dateBirth by remember { mutableStateOf("") }
+
+
+
+
+
     val passwordRegex =
         Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@!#$%&]).{8,}$")
 
-    val isPasswordValid = password.matches(passwordRegex)
+    val isPasswordValid = registrationViewModel.password.matches(passwordRegex)
 
     val dateRegex = Regex("^\\d{4}-\\d{2}-\\d{2}$")
     val isFullNameValid =
-        fullName.trim().matches(
+        registrationViewModel.fullName.trim().matches(
             Regex("^[A-Za-z]+\\s+[A-Za-z]+.*$")
         )
     val isUnder18 = try {
-        if (dateRegex.matches(dateBirth)) {
+        if (dateRegex.matches(registrationViewModel.dateBirth)) {
             val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             formatter.isLenient = false
 
-            val birthDate = formatter.parse(dateBirth)
+            val birthDate = formatter.parse(registrationViewModel.gender)
             val birthCalendar = Calendar.getInstance().apply {
                 time = birthDate!!
             }
@@ -203,14 +202,14 @@ fun DriverInfoScreen(
         false
     }
 
-    val isDateFormatValid = expiryDate.isBlank() || dateRegex.matches(expiryDate)
+    val isDateFormatValid = registrationViewModel.expiryDate.isBlank() || dateRegex.matches(registrationViewModel.expiryDate)
 
     val isExpired = try {
-        if (dateRegex.matches(expiryDate)) {
+        if (dateRegex.matches(registrationViewModel.expiryDate)) {
             val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
             formatter.isLenient = false
 
-            val enteredDate = formatter.parse(expiryDate)
+            val enteredDate = formatter.parse(registrationViewModel.expiryDate)
             enteredDate?.before(Date()) ?: false
         } else false
     } catch (e: Exception) {
@@ -218,18 +217,18 @@ fun DriverInfoScreen(
     }
 
     val isFormValid =
-        fullName.isNotBlank() &&
-                gender.isNotBlank() &&
+        registrationViewModel.fullName.isNotBlank() &&
+                registrationViewModel.gender.isNotBlank() &&
                 isFullNameValid &&
-                selectedNationality.isNotBlank() &&
-                selectedCity.isNotBlank() &&
+                registrationViewModel.nationality.isNotBlank() &&
+                registrationViewModel.city.isNotBlank() &&
                 !isUnder18 &&
                 isDateFormatValid &&
                 !isExpired &&
-                expiryDate.isNotBlank() &&
+                registrationViewModel.expiryDate.isNotBlank() &&
                 isPasswordValid &&
-                confirmPassword.isNotBlank() &&
-                password == confirmPassword
+                registrationViewModel.confirmPassword.isNotBlank() &&
+                registrationViewModel.password == registrationViewModel.confirmPassword
 
 
     val scrollState = rememberScrollState()
@@ -270,7 +269,10 @@ fun DriverInfoScreen(
         SignUpStepper(currentStep = 1)
 
         Spacer(Modifier.height(32.dp))
-
+        Text(
+            text = "ID/Iqama",
+            modifier = Modifier.fillMaxWidth()
+        )
         OutlinedTextField(
             value = idOrIqama,
             onValueChange = {},
@@ -288,8 +290,8 @@ fun DriverInfoScreen(
         val datePickerDialog = DatePickerDialog(
             context,
             { _, year, month, day ->
-                expiryDate = String.format("%04d-%02d-%02d", year, month + 1, day)
-            },
+                registrationViewModel.expiryDate =
+                    String.format("%04d-%02d-%02d", year, month + 1, day)            },
             calendar.get(Calendar.YEAR),
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
@@ -301,7 +303,7 @@ fun DriverInfoScreen(
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
-                value = expiryDate,
+                value = registrationViewModel.expiryDate,
                 onValueChange = {},
                 readOnly = true,
                 textStyle = LocalTextStyle.current.copy(color = Color.Black),
@@ -328,17 +330,20 @@ fun DriverInfoScreen(
             modifier = Modifier.fillMaxWidth()
         )
         OutlinedTextField(
-            value = fullName,
+            value = registrationViewModel.fullName,
             onValueChange = {
-                fullName = it.filter { c -> c.isLetter() || c.isWhitespace() }
-            },
+                registrationViewModel.fullName =
+                    it.filter { c -> c.isLetter() || c.isWhitespace() }            },
             label = { Text("Ex: Mohammed Abdullah") },
             textStyle = LocalTextStyle.current.copy(color = Color.Black),
             singleLine = true,
 
             modifier = Modifier.fillMaxWidth()
         )
-        if (fullName.isNotEmpty() && !isFullNameValid) {
+        if (
+            registrationViewModel.fullName.isNotEmpty() &&
+            !isFullNameValid
+        ) {
             Text(
                 text = "Enter first name and last name",
                 color = MaterialTheme.colorScheme.error
@@ -346,15 +351,20 @@ fun DriverInfoScreen(
         }
 
         Spacer(Modifier.height(12.dp))
-
         // ---------------- GENDER ----------------
+        Text(
+            text = "Gender",
+            modifier = Modifier.fillMaxWidth()
+
+        )
+
         Row(Modifier.fillMaxWidth()) {
 
             Button(
-                onClick = { gender = "Male" },
+                onClick = { registrationViewModel.gender = "Male" },
                 modifier = Modifier.weight(1f),
                 colors =
-                    if (gender == "Male")
+                    if (registrationViewModel.gender == "Male")
                         ButtonDefaults.buttonColors()
                     else
                         ButtonDefaults.buttonColors(
@@ -368,10 +378,10 @@ fun DriverInfoScreen(
             Spacer(modifier = Modifier.width(8.dp))
 
             Button(
-                onClick = { gender = "Female" },
+                onClick = { registrationViewModel.gender = "Female" },
                 modifier = Modifier.weight(1f),
                 colors =
-                    if (gender == "Female")
+                    if (registrationViewModel.gender == "Female")
                         ButtonDefaults.buttonColors()
                     else
                         ButtonDefaults.buttonColors(
@@ -389,7 +399,7 @@ fun DriverInfoScreen(
         val birthPicker = DatePickerDialog(
             context,
             { _, year, month, day ->
-                dateBirth = String.format("%04d-%02d-%02d", year, month + 1, day)
+                registrationViewModel.dateBirth = String.format("%04d-%02d-%02d", year, month + 1, day)
             },
             calendar.get(Calendar.YEAR),
             calendar.get(Calendar.MONTH),
@@ -402,7 +412,7 @@ fun DriverInfoScreen(
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
-                value = dateBirth,
+                value = registrationViewModel.dateBirth,
                 onValueChange = {},
                 readOnly = true,
                 textStyle = LocalTextStyle.current.copy(color = Color.Black),
@@ -434,7 +444,7 @@ fun DriverInfoScreen(
             onExpandedChange = { nationalityExpanded = !nationalityExpanded }
         ) {
             OutlinedTextField(
-                value = selectedNationality,
+                value = registrationViewModel.nationality,
                 onValueChange = {},
                 readOnly = true,
                 textStyle = LocalTextStyle.current.copy(color = Color.Black),
@@ -455,7 +465,7 @@ fun DriverInfoScreen(
                     DropdownMenuItem(
                         text = { Text(country.countryName ?: "") },
                         onClick = {
-                            selectedNationality = country.countryName ?: ""
+                            registrationViewModel.nationality = country.countryName ?: ""
                             viewModel.loadCities(country.countryCode ?: "")
                             nationalityExpanded = false
                         }
@@ -475,19 +485,19 @@ fun DriverInfoScreen(
         ExposedDropdownMenuBox(
             expanded = cityExpanded,
             onExpandedChange = {
-                if (selectedNationality.isNotBlank()) {
+                if (registrationViewModel.nationality.isNotBlank()) {
                     cityExpanded = !cityExpanded
                 }
             }
         ) {
             OutlinedTextField(
-                value = selectedCity,
+                value = registrationViewModel.city,
                 onValueChange = {},
                 readOnly = true,
                 textStyle = LocalTextStyle.current.copy(color = Color.Black),
                 label = { Text("City") },
                 placeholder = {
-                    if (selectedNationality.isBlank()) {
+                    if (registrationViewModel.nationality.isBlank()) {
                         Text("Select nationality first")
                     }
                 },
@@ -511,7 +521,7 @@ fun DriverInfoScreen(
                             Text(city.cityName ?: "")
                         },
                         onClick = {
-                            selectedCity = city.cityName ?: ""
+                            registrationViewModel.city = city.cityName ?: ""
                             cityExpanded = false
                         }
                     )
@@ -524,8 +534,8 @@ fun DriverInfoScreen(
             modifier = Modifier.fillMaxWidth()
         )
         OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
+            value = registrationViewModel.password,
+            onValueChange = { registrationViewModel.password = it },
             label = { Text("Password") },
             textStyle = LocalTextStyle.current.copy(color = Color.Black),
             singleLine = true,
@@ -546,7 +556,7 @@ fun DriverInfoScreen(
             }
         )
 
-        if (password.isNotEmpty() && !isPasswordValid) {
+        if (registrationViewModel.password.isNotEmpty() && !isPasswordValid) {
             Text(
                 "Password must contain:\n•At least 8 charachters\n• At least 1 uppercase letter [A-Z]\n• At least 1 lowercase letter [a-z]\n• At least 1 number [0-9]\n• At least 1 Symbol [@,!,#,$,%,&]",
                 color = MaterialTheme.colorScheme.error
@@ -561,8 +571,8 @@ fun DriverInfoScreen(
             modifier = Modifier.fillMaxWidth()
         )
         OutlinedTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
+            value = registrationViewModel.confirmPassword,
+            onValueChange = { registrationViewModel.confirmPassword = it },
             label = { Text("Confirm Password") },
             textStyle = LocalTextStyle.current.copy(color = Color.Black),
             modifier = Modifier.fillMaxWidth(),
@@ -572,7 +582,7 @@ fun DriverInfoScreen(
                 else PasswordVisualTransformation()
         )
 
-        if (confirmPassword.isNotEmpty() && password != confirmPassword) {
+        if (registrationViewModel.confirmPassword.isNotEmpty() && registrationViewModel.password != registrationViewModel.confirmPassword) {
             Text("Passwords do not match", color = MaterialTheme.colorScheme.error)
         }
 
@@ -584,15 +594,15 @@ fun DriverInfoScreen(
                 registrationViewModel.personalInfo =
                     PersonalInfoDto(
                         idNumber = idOrIqama,
-                        idExpiryDate = expiryDate,
-                        fullName = fullName,
-                        gender = gender,
-                        dob = dateBirth,
-                        nationality = selectedNationality,
-                        city = selectedCity,
-                        password = password,
+                        idExpiryDate = registrationViewModel.expiryDate,
+                        fullName = registrationViewModel.fullName,
+                        gender = registrationViewModel.gender,
+                        dob = registrationViewModel.gender,
+                        nationality = registrationViewModel.nationality,
+                        city = registrationViewModel.city,
+                        password = registrationViewModel.password,
                         mobile = phoneNumber,
-                        country = selectedNationality
+                        country = registrationViewModel.nationality
                     )
 
                 navController.navigate("vehicle_info/$requestId")
