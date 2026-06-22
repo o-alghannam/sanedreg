@@ -2,7 +2,9 @@ package com.example.saneddriverapp
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-
+import kotlinx.coroutines.launch
+import com.example.saneddriverapp.network.RetrofitInstance
+import com.example.saneddriverapp.network.model.SignUpRequest
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -17,8 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import android.util.Patterns
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun SignupScreen(
@@ -27,9 +31,9 @@ fun SignupScreen(
 ) {
 
     val dialCode = when (selectedCountry) {
-        "Saudi Arabia" -> "+966"
-        "Kuwait" -> "+965"
-        "Bahrain" -> "+973"
+        "Saudi Arabia" -> "966"
+        "Kuwait" -> "965"
+        "Bahrain" -> "973"
         else -> ""
     }
     var idOrIqama by remember { mutableStateOf("") }
@@ -42,13 +46,46 @@ fun SignupScreen(
 
     val isPhoneValid = phoneNumber.length == 9
     val isIdOrIqamaValid = idOrIqama.length == 10
-
+    val fullPhoneNumber = "${dialCode}${phoneNumber}"
 
     val isFormValid =
         isPhoneValid &&
                 isIdOrIqamaValid
 
     val scrollState = rememberScrollState()
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(Modifier.height(24.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "←",
+                fontSize = 40.sp,
+                modifier = Modifier.clickable {
+                    navController.popBackStack()
+                }
+            )
+
+            Spacer(Modifier.weight(1f))
+
+            Text(
+                text = "Sign Up",
+                fontSize = 24.sp
+            )
+            Spacer(modifier = Modifier.height(80.dp))
+
+
+            Spacer(Modifier.weight(1f))
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -58,11 +95,16 @@ fun SignupScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
+
+
+
+        Spacer(modifier = Modifier.height(80.dp))
         Spacer(modifier = Modifier.height(80.dp))
 
         Text(
+
             text = "Enter your ID/Iqama and Phone Number",
-            fontSize = 16.sp
+            fontSize = 18.sp
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -75,7 +117,7 @@ fun SignupScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        TextField(
+        OutlinedTextField(
             value = idOrIqama,
             onValueChange = {
                 idOrIqama = it.filter { c -> c.isDigit() }.take(10)
@@ -84,6 +126,8 @@ fun SignupScreen(
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number
             ),
+            textStyle = LocalTextStyle.current.copy(color = Color.Black),
+
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
@@ -106,12 +150,13 @@ fun SignupScreen(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            TextField(
+            OutlinedTextField(
                 value = phoneNumber,
                 onValueChange = {
                     phoneNumber = it.filter { c -> c.isDigit() }.take(9)
                 },
                 label = { Text("**********") },
+                textStyle = LocalTextStyle.current.copy(color = Color.Black),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
@@ -126,20 +171,48 @@ fun SignupScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // BUTTON
+        val scope = rememberCoroutineScope()
+
         Button(
             onClick = {
-                navController.navigate(
-                    "otp_verification/$phoneNumber/$idOrIqama"
-                )            },
+
+                scope.launch {
+
+                    try {
+
+                        val fullPhoneNumber =
+                            "${dialCode}${phoneNumber}"
+
+                        val response =
+                            RetrofitInstance.api.signUp(
+                                SignUpRequest(
+                                    idNumber = idOrIqama,
+                                    mobileNumber = fullPhoneNumber
+                                )
+                            )
+
+                        val key = response.data?.key
+
+                        if (true) {
+
+
+                            navController.navigate(
+                                "otp_verification/$fullPhoneNumber/$idOrIqama/$key"
+                            )
+                        }
+
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            },
             enabled = isFormValid
+
         ) {
             Text("Sign Up")
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(40.dp))
 
-        Button(onClick = { navController.popBackStack() }) {
-            Text("Back")
-        }
     }
 }

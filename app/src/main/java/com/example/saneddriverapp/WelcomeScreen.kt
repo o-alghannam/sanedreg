@@ -2,6 +2,7 @@ package com.example.saneddriverapp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import android.os.Bundle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -39,158 +40,238 @@ import androidx.compose.material3.TextField
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.saneddriverapp.network.RegistrationViewModel
+import com.example.saneddriverapp.network.ReviewViewModel
 
 @Composable
 fun AppNavigation() {
-    var ID by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
 
     val navController = rememberNavController()
+
+    // ✅ Existing working VM (DO NOT REMOVE)
+    val registrationViewModel: RegistrationViewModel = viewModel()
+
+    // ✅ Review VM (FIXED)
+    val reviewViewModel: ReviewViewModel = viewModel()
 
     NavHost(
         navController = navController,
         startDestination = "home"
     ) {
+
+        // ---------------- HOME ----------------
         composable("home") {
             HomeScreen(navController)
         }
+
+        // ---------------- REVIEW FLOW ----------------
+        composable("review_id") {
+            ReviewIdScreen(
+                navController = navController,
+                viewModel = reviewViewModel
+            )
+        }
+
+        composable("otp") {
+            StatusOtpScreen(
+                navController = navController,
+                viewModel = reviewViewModel
+            )
+        }
+
+        composable("status") {
+            StatusScreen(
+                navController = navController,
+                viewModel = reviewViewModel
+            )
+        }
+
+        // ---------------- EXISTING FLOWS (UNCHANGED) ----------------
 
         composable("country_selection") {
             CountrySelectionScreen(navController)
         }
 
         composable("signup/{country}") { backStackEntry ->
-            val country = backStackEntry.arguments?.getString("country") ?: "Saudi Arabia"
+            val country = backStackEntry.arguments?.getString("country")
+                ?: "Saudi Arabia"
+
             SignupScreen(
                 navController = navController,
                 selectedCountry = country
             )
         }
 
-        composable("driver_info/{id}") { backStackEntry ->
-            val id = backStackEntry.arguments?.getString("id") ?: ""
+        composable("driver_info/{requestId}/{idOrIqama}/{phone}") { backStackEntry ->
+
+            val requestId = backStackEntry.arguments
+                ?.getString("requestId")
+                ?.toLongOrNull() ?: 0L
+
+            val idOrIqama = backStackEntry.arguments?.getString("idOrIqama") ?: ""
+            val phone = backStackEntry.arguments?.getString("phone") ?: ""
+
             DriverInfoScreen(
                 navController = navController,
-                idOrIqama = id
+                requestId = requestId,
+                idOrIqama = idOrIqama,
+                phoneNumber = phone,
+                registrationViewModel = registrationViewModel
             )
         }
 
-        composable("otp_verification/{phone}/{id}") { backStackEntry ->
+        composable("vehicle_info/{requestId}") { backStackEntry ->
+
+            val requestId = backStackEntry.arguments
+                ?.getString("requestId")
+                ?.toLongOrNull() ?: 0L
+
+            VehichleInfo(
+                navController = navController,
+                requestId = requestId,
+                registrationViewModel = registrationViewModel
+            )
+        }
+
+        composable("uploadDocs/{requestId}") { backStackEntry ->
+
+            val requestId = backStackEntry.arguments
+                ?.getString("requestId")
+                ?.toLongOrNull() ?: 0L
+
+            UploadDocs(
+                navController = navController,
+                requestId = requestId,
+                registrationViewModel = registrationViewModel
+            )
+        }
+
+        composable("applicationSubmitted") {
+            ApplicationSubmittedScreen(navController)
+        }
+
+        composable("otp_verification/{phone}/{id}/{key}") { backStackEntry ->
+
             val phone = backStackEntry.arguments?.getString("phone") ?: ""
             val id = backStackEntry.arguments?.getString("id") ?: ""
+            val key = backStackEntry.arguments?.getString("key") ?: ""
 
             OtpScreen(
                 navController = navController,
                 phoneNumber = phone,
-                idOrIqama = id
+                idOrIqama = id,
+                key = key
             )
         }
     }
 }
+    @Composable
+    fun HomeScreen(navController: NavHostController) {
 
+        var idOrIqama by remember { mutableStateOf("") }
+        var password by remember { mutableStateOf("") }
+        var passwordVisible by remember { mutableStateOf(false) }
 
-@Composable
-fun HomeScreen(navController: NavHostController) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
 
-    var idOrIqama by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
+            Image(
+                painter = painterResource(id = R.drawable.saned_logo),
+                contentDescription = "Saned Logo",
+                modifier = Modifier.size(180.dp)
+            )
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
+            Spacer(modifier = Modifier.height(24.dp))
 
-        Image(
-            painter = painterResource(id = R.drawable.saned_logo),
-            contentDescription = "Saned Logo",
-            modifier = Modifier.size(180.dp)
-        )
+            Text(
+                text = "Welcome to Saned",
+                fontSize = 24.sp
+            )
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        Text(
-            text = "Welcome to Saned",
-            fontSize = 24.sp
-        )
+            TextField(
+                value = idOrIqama,
+                onValueChange = { idOrIqama = it },
+                label = { Text("ID / Iqama") },
+                singleLine = true
+            )
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-        TextField(
-            value = idOrIqama,
-            onValueChange = { idOrIqama = it },
-            label = { Text("ID / Iqama") },
-            singleLine = true
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        TextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            singleLine = true,
-            visualTransformation =
-                if (passwordVisible)
-                    VisualTransformation.None
-                else
-                    PasswordVisualTransformation(),
-            trailingIcon = {
-                IconButton(
-                    onClick = {
-                        passwordVisible = !passwordVisible
+            TextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                singleLine = true,
+                visualTransformation =
+                    if (passwordVisible)
+                        VisualTransformation.None
+                    else
+                        PasswordVisualTransformation(),
+                trailingIcon = {
+                    IconButton(
+                        onClick = {
+                            passwordVisible = !passwordVisible
+                        }
+                    ) {
+                        Icon(
+                            imageVector =
+                                if (passwordVisible)
+                                    Icons.Default.Visibility
+                                else
+                                    Icons.Default.VisibilityOff,
+                            contentDescription = "Toggle Password Visibility"
+                        )
                     }
-                ) {
-                    Icon(
-                        imageVector =
-                            if (passwordVisible)
-                                Icons.Default.Visibility
-                            else
-                                Icons.Default.VisibilityOff,
-                        contentDescription = "Toggle Password Visibility"
-                    )
                 }
-            }
-        )
+            )
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = {
-                // TODO: Login API call
-            }
-        ) {
-            Text("                          Sign In                          ")
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Want to join us as a Driver?")
-
-            TextButton(
+            Button(
                 onClick = {
-                    navController.navigate("country_selection")
+                    // TODO: Login API call
                 }
             ) {
-                Text("Register")
+                Text("                          Sign In                          ")
             }
-        }
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-        Button(
-            onClick = {
-                navController.navigate("details")
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Want to join us as a Driver?")
+
+                TextButton(
+                    onClick = {
+                        navController.navigate("country_selection")
+                    }
+                ) {
+                    Text("Register")
+                }
             }
-        ) {
-            Text("Review Your Request")
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = {
+                    navController.navigate("review_id")                }
+            ) {
+                Text("Review Your Request")
+            }
         }
     }
-}
+
+
 
 
 

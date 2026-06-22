@@ -1,9 +1,9 @@
 package com.example.saneddriverapp
-
-
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.delay
-
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -33,18 +33,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import android.util.Patterns
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun OtpScreen(
     navController: NavHostController,
     phoneNumber: String,
-    idOrIqama: String
+    idOrIqama: String,
+    key: String
 ) {
+
+    val viewModel: OtpViewModel = viewModel()
+    val state by viewModel.state.collectAsState()
+
+
     var secondsRemaining by remember { mutableStateOf(120) }
     val canResend = secondsRemaining == 0
 
@@ -63,28 +73,62 @@ fun OtpScreen(
 
     var otp by remember { mutableStateOf("") }
 
-    val isOtpValid = otp.length == 6
+    val isOtpValid = otp.length == 4
 
+    LaunchedEffect(state.requestId) {
+        state.requestId?.let { requestId ->
+
+                navController.navigate(
+                    "driver_info/$requestId/$idOrIqama/$phoneNumber"
+                )             {
+                popUpTo("otp_verification/{phone}/{id}/{key}") {
+                    inclusive = true
+                }
+            }
+        }
+    }
+
+    val scrollState = rememberScrollState()
     Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(Modifier.height(24.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "←",
+                fontSize = 40.sp,
+                modifier = Modifier.clickable {
+                    navController.popBackStack()
+                }
+            )
+
+            Spacer(Modifier.weight(1f))
+            }
 
         Text(
             text = "Enter the OTP sent to mobile number ending with $lastFourDigits",
-            fontSize = 18.sp,
+            fontSize = 26.sp,
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(32.dp))
 
-        TextField(
+        OutlinedTextField(
             value = otp,
             onValueChange = {
-                otp = it.filter { c -> c.isDigit() }.take(6)
+                otp = it.filter { c -> c.isDigit() }.take(4)
             },
             label = { Text("Enter OTP") },
+            textStyle = LocalTextStyle.current.copy(color = Color.Black),
+
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number
             ),
@@ -113,33 +157,50 @@ fun OtpScreen(
                 onClick = {
                     secondsRemaining = 120
                 },
-                enabled = canResend
+                enabled = canResend && !state.isLoading
             ) {
                 Text("Resend OTP")
             }
         }
+
         Spacer(modifier = Modifier.height(16.dp))
+
+        if (state.isLoading) {
+            CircularProgressIndicator()
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        state.error?.let {
+            Text(
+                text = it,
+                color = MaterialTheme.colorScheme.error
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
 
         Button(
             onClick = {
-                navController.navigate(
-                    "driver_info/$idOrIqama"
+                viewModel.verifyOtp(
+                    idNumber = idOrIqama,
+                    mobileNumber = phoneNumber,
+                    otp = otp.toInt(),
+                    key = key
                 )
             },
-            enabled = isOtpValid
+            enabled = isOtpValid && !state.isLoading
         ) {
             Text("Verify")
         }
 
+        Spacer(modifier = Modifier.height(40.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
 
-        Button(
-            onClick = {
-                navController.popBackStack()
-            }
-        ) {
-            Text("Back")
-        }
     }
+   // registrationViewModel.requestId = requestId
+
+    //navController.navigate(
+       // "driver_info/$requestId/$idOrIqama")
 }
+
+
