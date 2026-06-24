@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "780627104017",
+    "project_id": "saneddriverdilveryapp",
+    "storage_bucket": "saneddriverdilveryapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:780627104017:android:c149b98a6fda4b52a9fcb0",
+        "android_client_info": {
+          "package_name": "com.example.saneddriverapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBmmoU2zKY9JkUB3kLtgl54LzqMGH8EkL8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
