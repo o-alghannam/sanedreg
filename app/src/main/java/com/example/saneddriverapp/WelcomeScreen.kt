@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -197,7 +198,7 @@ fun AppNavigation() {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            TextField(
+           TextField(
                 value = idOrIqama,
                 onValueChange = { idOrIqama = it },
                 label = { Text("ID / Iqama") },

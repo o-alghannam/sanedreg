@@ -597,7 +597,7 @@ fun DriverInfoScreen(
                         idExpiryDate = registrationViewModel.expiryDate,
                         fullName = registrationViewModel.fullName,
                         gender = registrationViewModel.gender,
-                        dob = registrationViewModel.gender,
+                        dob = registrationViewModel.dateBirth,
                         nationality = registrationViewModel.nationality,
                         city = registrationViewModel.city,
                         password = registrationViewModel.password,
