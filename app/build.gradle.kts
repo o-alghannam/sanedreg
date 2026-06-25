@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+
+    alias(libs.plugins.hilt)
+    kotlin("kapt")
 }
 
 android {
@@ -16,6 +19,15 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    kapt {
+        correctErrorTypes = true
+    }
+    configurations.all {
+        resolutionStrategy.force("com.squareup:javapoet:1.13.0")
+    }
+    hilt {
+        enableAggregatingTask = false
     }
 
     buildTypes {
@@ -41,7 +53,11 @@ android {
 dependencies {
 
     implementation("androidx.compose.material3:material3")
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
 
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    kapt("com.squareup:javapoet:1.13.0")
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.compose.ui.graphics)
