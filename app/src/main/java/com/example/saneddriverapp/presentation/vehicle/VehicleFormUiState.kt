@@ -1,4 +1,4 @@
-package com.example.saneddriverapp.presentation.registration
+package com.example.saneddriverapp.presentation.vehicle
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

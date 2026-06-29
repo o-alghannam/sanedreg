@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import com.example.saneddriverapp.data.remote.dto.response.VehicleInfoDto
 import com.example.saneddriverapp.data.remote.dto.request.SignUpRequest
+import com.example.saneddriverapp.presentation.vehicle.VehicleFormUiState
 
 @HiltViewModel
 class RegistrationViewModel @Inject constructor(
