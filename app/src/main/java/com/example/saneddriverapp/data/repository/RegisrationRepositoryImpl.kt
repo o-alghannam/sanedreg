@@ -2,29 +2,31 @@ package com.example.saneddriverapp.data.repository
 
 import com.example.saneddriverapp.data.remote.api.RegistrationApi
 import com.example.saneddriverapp.data.remote.dto.request.CompleteSignUpRequest
-import com.example.saneddriverapp.data.remote.dto.request.SubmitInfoRequest
-import javax.inject.Inject
 import com.example.saneddriverapp.data.remote.dto.request.SignUpRequest
-class RegistrationRepository @Inject constructor(
+import com.example.saneddriverapp.data.remote.dto.request.SubmitInfoRequest
+import com.example.saneddriverapp.domain.repository.RegistrationRepository
+import javax.inject.Inject
+
+class RegistrationRepositoryImpl @Inject constructor(
     private val api: RegistrationApi
-) {
-    suspend fun signUp(
+) : RegistrationRepository {
+
+    override suspend fun signUp(
         request: SignUpRequest
     ) =
         api.signUp(request)
 
-
-    suspend fun completeSignUp(
+    override suspend fun completeSignUp(
         request: CompleteSignUpRequest
     ) =
         api.completeSignUp(request)
 
-    suspend fun submitInfo(
+    override suspend fun submitInfo(
         request: SubmitInfoRequest
     ) =
         api.submitInfo(request)
 
-    suspend fun finalizeApplication(
+    override suspend fun finalizeApplication(
         requestId: Long
     ) {
         api.finalizeApplication(requestId)

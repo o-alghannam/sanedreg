@@ -3,8 +3,8 @@ package com.example.saneddriverapp.presentation.city
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.saneddriverapp.data.repository.LookupRepository
 import com.example.saneddriverapp.domain.model.City
+import com.example.saneddriverapp.domain.usecase.lookup.GetCitiesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CityViewModel @Inject constructor(
-    private val repository: LookupRepository
+    private val getCitiesUseCase: GetCitiesUseCase
 ) : ViewModel() {
 
     private val _cities =
@@ -22,16 +22,11 @@ class CityViewModel @Inject constructor(
     val cities = _cities.asStateFlow()
 
     fun loadCities(countryCode: String) {
-
         viewModelScope.launch {
-
             try {
-
                 _cities.value =
-                    repository.getCities(countryCode)
-
+                    getCitiesUseCase(countryCode)
             } catch (e: Exception) {
-
                 Log.e(
                     "CITY",
                     "Error loading cities",

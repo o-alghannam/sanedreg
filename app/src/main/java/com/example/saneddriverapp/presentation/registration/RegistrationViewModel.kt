@@ -1,26 +1,30 @@
 package com.example.saneddriverapp.presentation.registration
 
-
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
+import com.example.saneddriverapp.data.remote.dto.request.SignUpRequest
 import com.example.saneddriverapp.data.remote.dto.request.SubmitInfoRequest
-import com.example.saneddriverapp.data.repository.RegistrationRepository
-import com.example.saneddriverapp.data.repository.UploadRepository
+import com.example.saneddriverapp.data.remote.dto.response.VehicleInfoDto
 import com.example.saneddriverapp.domain.model.PersonalInfo
+import com.example.saneddriverapp.domain.usecase.registration.FinalizeApplicationUseCase
+import com.example.saneddriverapp.domain.usecase.registration.SignUpUseCase
+import com.example.saneddriverapp.domain.usecase.registration.SubmitInfoUseCase
+import com.example.saneddriverapp.domain.usecase.registration.UploadAttachmentUseCase
+import com.example.saneddriverapp.presentation.vehicle.VehicleFormUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
-import com.example.saneddriverapp.data.remote.dto.response.VehicleInfoDto
-import com.example.saneddriverapp.data.remote.dto.request.SignUpRequest
-import com.example.saneddriverapp.presentation.vehicle.VehicleFormUiState
 
 @HiltViewModel
 class RegistrationViewModel @Inject constructor(
-    private val registrationRepository: RegistrationRepository,
-    private val uploadRepository: UploadRepository
+    private val signUpUseCase: SignUpUseCase,
+    private val submitInfoUseCase: SubmitInfoUseCase,
+    private val finalizeApplicationUseCase: FinalizeApplicationUseCase,
+    private val uploadAttachmentUseCase: UploadAttachmentUseCase
 ) : ViewModel() {
+
     val vehicleForm = VehicleFormUiState()
 
     var vehicleInfo: VehicleInfoDto? = null
@@ -38,7 +42,7 @@ class RegistrationViewModel @Inject constructor(
         uri: Uri,
         attachmentType: String
     ) {
-        uploadRepository.uploadAttachment(
+        uploadAttachmentUseCase(
             context = context,
             requestId = requestId,
             uri = uri,
@@ -49,13 +53,18 @@ class RegistrationViewModel @Inject constructor(
     suspend fun submitInfo(
         request: SubmitInfoRequest
     ) =
-        registrationRepository.submitInfo(request)
+        submitInfoUseCase(request)
 
     suspend fun finalizeApplication(
         requestId: Long
     ) {
-        registrationRepository.finalizeApplication(requestId)
+        finalizeApplicationUseCase(requestId)
     }
+
+    suspend fun signUp(
+        request: SignUpRequest
+    ) =
+        signUpUseCase(request)
 
     fun updateFullName(value: String) {
         _uiState.value =
@@ -96,8 +105,4 @@ class RegistrationViewModel @Inject constructor(
         _uiState.value =
             _uiState.value.copy(confirmPassword = value)
     }
-    suspend fun signUp(
-        request: SignUpRequest
-    ) =
-        registrationRepository.signUp(request)
 }

@@ -7,14 +7,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.saneddriverapp.data.remote.dto.request.SendReviewOtpRequest
 import com.example.saneddriverapp.data.remote.dto.request.VerifyReviewOtpRequest
-import com.example.saneddriverapp.data.repository.ReviewRepository
+import com.example.saneddriverapp.domain.usecase.review.SendReviewOtpUseCase
+import com.example.saneddriverapp.domain.usecase.review.VerifyReviewOtpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ReviewViewModel @Inject constructor(
-    private val repository: ReviewRepository
+    private val sendReviewOtpUseCase: SendReviewOtpUseCase,
+    private val verifyReviewOtpUseCase: VerifyReviewOtpUseCase
 ) : ViewModel() {
 
     var otpKey: String = ""
@@ -27,10 +29,9 @@ class ReviewViewModel @Inject constructor(
         private set
 
     fun onIdChange(value: String) {
-        idNumber =
-            value
-                .filter { char -> char.isDigit() }
-                .take(10)
+        idNumber = value
+            .filter { it.isDigit() }
+            .take(10)
     }
 
     fun sendOtp() {
@@ -38,35 +39,26 @@ class ReviewViewModel @Inject constructor(
             try {
                 state = ReviewState.Loading
 
-                val response =
-                    repository.sendReviewOtp(
-                        SendReviewOtpRequest(
-                            nationalId = idNumber
-                        )
+                val response = sendReviewOtpUseCase(
+                    SendReviewOtpRequest(
+                        nationalId = idNumber
                     )
+                )
 
                 if (response.isSuccessful) {
-                    otpKey =
-                        response.body()
-                            ?.data
-                            ?.key
-                            ?: ""
-
+                    otpKey = response.body()?.data?.key ?: ""
                     state = ReviewState.OtpSent
                 } else {
-                    state =
-                        ReviewState.Error(
-                            response.errorBody()
-                                ?.string()
-                                ?: "Failed to send OTP"
-                        )
+                    state = ReviewState.Error(
+                        response.errorBody()?.string()
+                            ?: "Failed to send OTP"
+                    )
                 }
 
             } catch (e: Exception) {
-                state =
-                    ReviewState.Error(
-                        e.message ?: "Unknown error"
-                    )
+                state = ReviewState.Error(
+                    e.message ?: "Failed to send OTP"
+                )
             }
         }
     }
@@ -76,55 +68,40 @@ class ReviewViewModel @Inject constructor(
             try {
                 state = ReviewState.Verifying
 
-                val request =
+                val response = verifyReviewOtpUseCase(
                     VerifyReviewOtpRequest(
                         key = otpKey,
                         otp = otp.toInt(),
                         nationalId = idNumber
                     )
-
-                val response =
-                    repository.verifyReviewOtp(request)
+                )
 
                 if (response.isSuccessful) {
+                    val first = response.body()?.data?.firstOrNull()
 
-                    val first =
-                        response.body()
-                            ?.data
-                            ?.firstOrNull()
-
-                    if (first != null) {
-                        state =
+                    state =
+                        if (first != null) {
                             ReviewState.Success(
                                 status = first.status,
-                                reason = first.reason,
-                                fields =
-                                    first.fieldsThatNeedUpdate
-                                        .map { it.toString() }
+                                reason = first.reason ?: "",
+                                fields = first.fieldsThatNeedUpdate.map { field ->
+                                    field.toString()
+                                }
                             )
-                    } else {
-                        state =
-                            ReviewState.Error(
-                                "No application found"
-                            )
-                    }
-
+                        } else {
+                            ReviewState.Error("No application found")
+                        }
                 } else {
-                    state =
-                        ReviewState.Error(
-                            response.errorBody()
-                                ?.string()
-                                ?: "Verification failed"
-                        )
+                    state = ReviewState.Error(
+                        response.errorBody()?.string()
+                            ?: "Verification failed"
+                    )
                 }
 
             } catch (e: Exception) {
-                e.printStackTrace()
-
-                state =
-                    ReviewState.Error(
-                        e.message ?: "Unknown error"
-                    )
+                state = ReviewState.Error(
+                    e.message ?: "Verification failed"
+                )
             }
         }
     }

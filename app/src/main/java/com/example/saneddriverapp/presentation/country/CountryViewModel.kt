@@ -3,8 +3,8 @@ package com.example.saneddriverapp.presentation.country
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.saneddriverapp.data.repository.LookupRepository
 import com.example.saneddriverapp.domain.model.Country
+import com.example.saneddriverapp.domain.usecase.lookup.GetCountriesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CountryViewModel @Inject constructor(
-    private val repository: LookupRepository
+    private val getCountriesUseCase: GetCountriesUseCase
 ) : ViewModel() {
 
     private val _countries =
@@ -30,7 +30,7 @@ class CountryViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _countries.value =
-                    repository.getCountries()
+                    getCountriesUseCase()
             } catch (e: Exception) {
                 Log.e(
                     "COUNTRIES",

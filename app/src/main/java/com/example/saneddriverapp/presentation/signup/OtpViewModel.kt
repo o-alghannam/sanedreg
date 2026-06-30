@@ -3,7 +3,8 @@ package com.example.saneddriverapp.presentation.signup
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.saneddriverapp.data.remote.dto.request.CompleteSignUpRequest
-import com.example.saneddriverapp.data.repository.RegistrationRepository
+import com.example.saneddriverapp.domain.usecase.registration.CompleteSignUpUseCase
+import com.example.saneddriverapp.presentation.signup.OtpState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OtpViewModel @Inject constructor(
-    private val repository: RegistrationRepository
+    private val completeSignUpUseCase: CompleteSignUpUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(OtpState())
@@ -25,20 +26,14 @@ class OtpViewModel @Inject constructor(
         otp: Int,
         key: String
     ) {
-
         viewModelScope.launch {
-
             _state.update {
-                it.copy(
-                    isLoading = true,
-                    error = null
-                )
+                it.copy(isLoading = true, error = null)
             }
 
             try {
-
                 val response =
-                    repository.completeSignUp(
+                    completeSignUpUseCase(
                         CompleteSignUpRequest(
                             idNumber = idNumber,
                             mobileNumber = mobileNumber,
@@ -55,7 +50,6 @@ class OtpViewModel @Inject constructor(
                 }
 
             } catch (e: Exception) {
-
                 _state.update {
                     it.copy(
                         isLoading = false,

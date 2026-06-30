@@ -3,18 +3,19 @@ package com.example.saneddriverapp.data.repository
 import com.example.saneddriverapp.data.remote.api.ReviewApi
 import com.example.saneddriverapp.data.remote.dto.request.SendReviewOtpRequest
 import com.example.saneddriverapp.data.remote.dto.request.VerifyReviewOtpRequest
+import com.example.saneddriverapp.domain.repository.ReviewRepository
 import javax.inject.Inject
 
-class ReviewRepository @Inject constructor(
+class ReviewRepositoryImpl @Inject constructor(
     private val api: ReviewApi
-) {
+) : ReviewRepository {
 
-    suspend fun sendReviewOtp(
+    override suspend fun sendReviewOtp(
         request: SendReviewOtpRequest
     ) =
         api.sendReviewOtp(request)
 
-    suspend fun verifyReviewOtp(
+    override suspend fun verifyReviewOtp(
         request: VerifyReviewOtpRequest
     ) =
         api.verifyReviewOtp(request)

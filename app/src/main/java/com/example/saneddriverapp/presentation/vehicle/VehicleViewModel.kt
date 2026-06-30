@@ -3,9 +3,10 @@ package com.example.saneddriverapp.presentation.vehicle
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.saneddriverapp.data.repository.LookupRepository
 import com.example.saneddriverapp.domain.model.VehicleModel
 import com.example.saneddriverapp.domain.model.VehicleType
+import com.example.saneddriverapp.domain.usecase.lookup.GetVehicleModelsUseCase
+import com.example.saneddriverapp.domain.usecase.lookup.GetVehicleTypesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class VehicleViewModel @Inject constructor(
-    private val repository: LookupRepository
+    private val getVehicleModelsUseCase: GetVehicleModelsUseCase,
+    private val getVehicleTypesUseCase: GetVehicleTypesUseCase
 ) : ViewModel() {
 
     private val _vehicleModels =
@@ -30,41 +32,23 @@ class VehicleViewModel @Inject constructor(
         _vehicleTypes.asStateFlow()
 
     fun loadVehicleModels() {
-
         viewModelScope.launch {
-
             try {
-
                 _vehicleModels.value =
-                    repository.getVehicleModels()
-
+                    getVehicleModelsUseCase()
             } catch (e: Exception) {
-
-                Log.e(
-                    "VEHICLE_MODELS",
-                    "Error",
-                    e
-                )
+                Log.e("VEHICLE_MODELS", "Error", e)
             }
         }
     }
 
     fun loadVehicleTypes() {
-
         viewModelScope.launch {
-
             try {
-
                 _vehicleTypes.value =
-                    repository.getVehicleTypes()
-
+                    getVehicleTypesUseCase()
             } catch (e: Exception) {
-
-                Log.e(
-                    "VEHICLE_TYPES",
-                    "Error",
-                    e
-                )
+                Log.e("VEHICLE_TYPES", "Error", e)
             }
         }
     }

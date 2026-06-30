@@ -53,6 +53,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.saneddriverapp.domain.model.PersonalInfo
 import android.provider.Settings
+import com.example.saneddriverapp.domain.model.City
+import com.example.saneddriverapp.domain.model.Country
+
 @Composable
 fun SignUpStepper(
 
@@ -150,7 +153,7 @@ fun DriverInfoScreen(
 ){
     val uiState by registrationViewModel
         .uiState
-        .collectAsState()
+        .collectAsStateWithLifecycle()
 
     var passwordVisible by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -489,7 +492,7 @@ fun DriverInfoScreen(
                 expanded = nationalityExpanded,
                 onDismissRequest = { nationalityExpanded = false }
             ) {
-                countries.forEach { country ->
+                countries.forEach { country: Country ->
                     DropdownMenuItem(
                         text = { Text(country.name) },
                         onClick = {
@@ -548,7 +551,7 @@ fun DriverInfoScreen(
                     cityExpanded = false
                 }
             ) {
-                cities.forEach { city ->
+                cities.forEach { city: City ->
                     DropdownMenuItem(
                         text = {
                             Text(city.name)                        },
